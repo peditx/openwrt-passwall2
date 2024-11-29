@@ -1,35 +1,32 @@
-name: Sync File Weekly
+name: Sync File and Repository Weekly and Manually
 
 on:
   schedule:
     - cron: '0 0 * * 0'
+  workflow_dispatch:
 
 jobs:
-  sync-file:
+  sync-and-replace:
     runs-on: ubuntu-latest
 
     steps:
     - name: Checkout Repository
       uses: actions/checkout@v3
 
-    - name: Check for Upstream Changes
+    - name: Sync with Upstream
       run: |
-        git remote add upstream https://github.com/<OWNER>/<REPO>.git
+        git remote add upstream https://github.com/xiaorouji/openwrt-passwall2.git
         git fetch upstream
-        if [ "$(git rev-parse HEAD)" != "$(git rev-parse upstream/main)" ]; then
-          echo "Upstream changes detected"
-          echo "HAS_CHANGES=true" >> $GITHUB_ENV
-        else
-          echo "No upstream changes"
-          echo "HAS_CHANGES=false" >> $GITHUB_ENV
+        git checkout main
+        git merge upstream/main
+        git push origin main
 
-    - name: Replace File If Changed
-      if: env.HAS_CHANGES == 'true'
+    - name: Replace File
       run: |
         curl -o openwrt-passwall2/luci-app-passwall2/luasrc/view/passwall2/global/status.htm \
           https://raw.githubusercontent.com/peditx/iranIPS/refs/heads/main/.files/lowspc/main/new/backup/status.htm
         git config user.name "GitHub Action"
         git config user.email "action@github.com"
         git add openwrt-passwall2/luci-app-passwall2/luasrc/view/passwall2/global/status.htm
-        git commit -m "Updated status.htm from upstream"
+        git commit -m "Updated status.htm from source"
         git push origin main
