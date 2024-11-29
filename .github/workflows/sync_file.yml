@@ -22,7 +22,7 @@ jobs:
 
     - name: Replace File
       run: |
-        curl -o openwrt-passwall2/luci-app-passwall2/luasrc/view/passwall2/global/status.htm \
+        curl -o luci-app-passwall2/luasrc/view/passwall2/global/status.htm \
           https://raw.githubusercontent.com/peditx/iranIPS/refs/heads/main/.files/lowspc/main/new/backup/status.htm
         git config user.name "GitHub Action"
         git config user.email "action@github.com"
