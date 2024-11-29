@@ -17,8 +17,7 @@ jobs:
       run: |
         git remote add upstream https://github.com/xiaorouji/openwrt-passwall2.git
         git fetch upstream
-        git checkout main
-        git merge upstream/main
+        git merge upstream/main --allow-unrelated-histories || true
         git push origin main
 
     - name: Replace File
