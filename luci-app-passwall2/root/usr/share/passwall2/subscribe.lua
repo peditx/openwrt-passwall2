@@ -488,6 +488,16 @@ local function processData(szType, content, add_mode, add_from)
 		if info.net == 'xhttp' or info.net == 'splithttp' then
 			result.xhttp_host = info.host
 			result.xhttp_path = info.path
+			result.xhttp_mode = params.mode or "auto"
+			result.xhttp_extra = params.extra
+			local success, Data = pcall(jsonParse, params.extra)
+				if success and Data then
+					local address = (Data.extra and Data.extra.downloadSettings and Data.extra.downloadSettings.address)
+							or (Data.downloadSettings and Data.downloadSettings.address)
+					result.download_address = address and address ~= "" and address or nil
+				else
+					result.download_address = nil
+				end
 		end
 		if not info.security then result.security = "auto" end
 		if info.tls == "tls" or info.tls == "1" then
@@ -1177,12 +1187,19 @@ local function processData(szType, content, add_mode, add_from)
 	return result
 end
 
-local function curl(url, file, ua)
+local function curl(url, file, ua, mode)
 	local curl_args = api.clone(api.curl_args)
 	if ua and ua ~= "" and ua ~= "curl" then
 		table.insert(curl_args, '--user-agent "' .. ua .. '"')
 	end
-	local return_code, result = api.curl_logic(url, file, curl_args)
+	local return_code
+	if mode == "direct" then
+		return_code = api.curl_direct(url, file, curl_args)
+	elseif mode == "proxy" then
+		return_code = api.curl_proxy(url, file, curl_args)
+	else
+		return_code = api.curl_auto(url, file, curl_args)
+	end
 	return return_code
 end
 
@@ -1571,8 +1588,10 @@ local execute = function()
 				domain_strategy_node = domain_strategy_default
 			end
 			local ua = value.user_agent
-			log('正在订阅:【' .. remark .. '】' .. url)
-			local raw = curl(url, "/tmp/" .. cfgid, ua)
+			local access_mode = value.access_mode
+			local result = (not access_mode) and "自动" or (access_mode == "direct" and "直连访问" or (access_mode == "proxy" and "通过代理" or "自动"))
+			log('正在订阅:【' .. remark .. '】' .. url .. ' [' .. result .. ']')
+			local raw = curl(url, "/tmp/" .. cfgid, ua, access_mode)
 			if raw == 0 then
 				local f = io.open("/tmp/" .. cfgid, "r")
 				local stdout = f:read("*all")

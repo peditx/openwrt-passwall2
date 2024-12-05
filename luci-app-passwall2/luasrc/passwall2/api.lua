@@ -62,6 +62,29 @@ function base64Decode(text)
 	end
 end
 
+--提取URL中的域名和端口(no ip)
+function get_domain_port_from_url(url)
+	local scheme, domain, port = string.match(url, "^(https?)://([%w%.%-]+):?(%d*)")
+	if not domain then
+		scheme, domain, port = string.match(url, "^(https?)://(%b[])([^:/]*)/?")
+	end
+	if not domain then return nil, nil end
+	if domain:sub(1, 1) == "[" then domain = domain:sub(2, -2) end
+	port = port ~= "" and tonumber(port) or (scheme == "https" and 443 or 80)
+	if datatypes.ipaddr(domain) or datatypes.ip6addr(domain) then return nil, nil end
+	return domain, port
+end
+
+--解析域名
+function domainToIPv4(domain, dns)
+	local Dns = dns or "223.5.5.5"
+	local IPs = luci.sys.exec('nslookup %s %s | awk \'/^Name:/{getline; if ($1 == "Address:") print $2}\'' % { domain, Dns })
+	for IP in string.gmatch(IPs, "%S+") do
+		if datatypes.ipaddr(IP) and not datatypes.ip6addr(IP) then return IP end
+	end
+	return nil
+end
+
 function curl_base(url, file, args)
 	if not args then args = {} end
 	if file then
@@ -87,6 +110,28 @@ function curl_logic(url, file, args)
 	local return_code, result = curl_proxy(url, file, args)
 	if not return_code or return_code ~= 0 then
 		return_code, result = curl_base(url, file, args)
+	end
+	return return_code, result
+end
+
+function curl_direct(url, file, args)
+	--直连访问
+	if not args then args = {} end
+	local tmp_args = clone(args)
+	local domain, port = get_domain_port_from_url(url)
+	if domain then
+		local ip = domainToIPv4(domain)
+		if ip then
+			tmp_args[#tmp_args + 1] = "--resolve " .. domain .. ":" .. port .. ":" .. ip
+		end
+	end
+	return curl_base(url, file, tmp_args)
+end
+
+function curl_auto(url, file, args)
+	local return_code, result = curl_proxy(url, file, args)
+	if not return_code or return_code ~= 0 then
+		return_code, result = curl_direct(url, file, args)
 	end
 	return return_code, result
 end
@@ -1069,11 +1114,16 @@ function luci_types(id, m, s, type_name, option_prefix)
 				end
 				s.fields[key].write = function(self, section, value)
 					if s.fields["type"]:formvalue(id) == type_name then
-						if self.rewrite_option then
-							m:set(section, self.rewrite_option, value)
+						-- 添加自定义 custom_write 属性，如果有自定义的 custom_write 函数，则使用自定义的 write 逻辑
+						if self.custom_write then
+							self:custom_write(section, value)
 						else
-							if self.option:find(option_prefix) == 1 then
-								m:set(section, self.option:sub(1 + #option_prefix), value)
+							if self.rewrite_option then
+								m:set(section, self.rewrite_option, value)
+							else
+								if self.option:find(option_prefix) == 1 then
+									m:set(section, self.option:sub(1 + #option_prefix), value)
+								end
 							end
 						end
 					end
