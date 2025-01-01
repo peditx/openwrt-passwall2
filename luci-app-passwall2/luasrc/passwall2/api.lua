@@ -3,6 +3,7 @@ local com = require "luci.passwall2.com"
 bin = require "nixio".bin
 fs = require "nixio.fs"
 sys = require "luci.sys"
+libuci = require "uci".cursor()
 uci = require"luci.model.uci".cursor()
 util = require "luci.util"
 datatypes = require "luci.cbi.datatypes"
@@ -27,6 +28,52 @@ function log(...)
 		f:write(result .. "\n")
 		f:close()
 	end
+end
+
+function uci_set_list(cursor, config, section, option, value)
+	if config and section and option then
+		if not value or #value == 0 then
+			return cursor:delete(config, section, option)
+		end
+		return cursor:set(
+			config, section, option,
+			( type(value) == "table" and value or { value } )
+		)
+	end
+	return false
+end
+
+function uci_section(cursor, config, type, name, values)
+	local stat = true
+	if name then
+		stat = cursor:set(config, name, type)
+	else
+		name = cursor:add(config, type)
+		stat = name and true
+	end
+
+	return stat and name
+end
+
+function sh_uci_get(config, section, option)
+	exec_call(string.format("uci -q get %s.%s.%s", config, section, option))
+	exec_call(string.format("uci -q commit %s", config))
+end
+
+function sh_uci_set(config, section, option, val)
+	exec_call(string.format("uci -q set %s.%s.%s=\"%s\"", config, section, option, val))
+	exec_call(string.format("uci -q commit %s", config))
+end
+
+function sh_uci_del(config, section, option)
+	exec_call(string.format("uci -q delete %s.%s.%s", config, section, option))
+	exec_call(string.format("uci -q commit %s", config))
+end
+
+function sh_uci_add_list(config, section, option, val)
+	exec_call(string.format("uci -q del_list %s.%s.%s=\"%s\"", config, section, option, val))
+	exec_call(string.format("uci -q add_list %s.%s.%s=\"%s\"", config, section, option, val))
+	exec_call(string.format("uci -q commit %s", config))
 end
 
 function set_cache_var(key, val)
@@ -220,7 +267,7 @@ function is_install(package)
 		local file_path = "/usr/lib/opkg/info"
 		local file_ext = ".control"
 		local has = sys.call("[ -d " .. file_path .. " ]")
-		if has == 0 then
+		if has ~= 0 then
 			file_path = "/lib/apk/packages"
 			file_ext = ".list"
 		end
@@ -1065,7 +1112,7 @@ end
 function get_version()
 	local version = sys.exec("opkg list-installed luci-app-passwall2 2>/dev/null | awk '{print $3}'")
 	if not version or #version == 0 then
-		version = sys.exec("apk info luci-app-passwall2 2>/dev/null | awk 'NR == 1 {print $1}' | cut -d'-' -f4-")
+		version = sys.exec("apk info -L luci-app-passwall2 2>/dev/null | awk 'NR == 1 {print $1}' | cut -d'-' -f4-")
 	end
 	return version or ""
 end

@@ -1,6 +1,5 @@
 local api = require "luci.passwall2.api"
 local appname = api.appname
-local uci = api.uci
 local datatypes = api.datatypes
 local has_singbox = api.finded_com("singbox")
 local has_xray = api.finded_com("xray")
@@ -33,7 +32,7 @@ for k, v in pairs(nodes_table) do
 end
 
 local socks_list = {}
-uci:foreach(appname, "socks", function(s)
+m.uci:foreach(appname, "socks", function(s)
 	if s.enabled == "1" and s.node then
 		socks_list[#socks_list + 1] = {
 			id = "Socks_" .. s[".name"],
@@ -66,8 +65,7 @@ end
 
 m:append(Template(appname .. "/global/status"))
 
-local global_cfgid = uci:get_all(appname, "@global[0]")[".name"]
-
+local global_cfgid = m:get("@global[0]")[".name"]
 s = m:section(TypedSection, "global")
 s.anonymous = true
 s.addremove = false
@@ -150,7 +148,7 @@ if (has_singbox or has_xray) and #nodes_table > 0 then
 				type:depends({ __hide = true }) --不存在的依赖，即始终隐藏
 			end
 
-			uci:foreach(appname, "shunt_rules", function(e)
+			m.uci:foreach(appname, "shunt_rules", function(e)
 				local id = e[".name"]
 				local node_option = vid .. "-" .. id .. "_node"
 				if id and e.remarks then
@@ -305,7 +303,6 @@ o = s:taboption("DNS", Value, "remote_dns_client_ip", translate("Remote DNS EDNS
 o.description = translate("Notify the DNS server when the DNS query is notified, the location of the client (cannot be a private IP address).") .. "<br />" ..
 				translate("This feature requires the DNS server to support the Edns Client Subnet (RFC7871).")
 o.datatype = "ipaddr"
-o:depends({ __hide = true })
 
 o = s:taboption("DNS", ListValue, "remote_dns_detour", translate("Remote DNS Outbound"))
 o.default = "remote"
@@ -352,8 +349,6 @@ o.template = "passwall2/cbi/hidevalue"
 o.value = "1"
 o:depends({ __hide = true })
 
-s.fields["remote_dns_client_ip"]:depends({ _xray_node = "1", remote_dns_protocol = "tcp" })
-s.fields["remote_dns_client_ip"]:depends({ _xray_node = "1", remote_dns_protocol = "doh" })
 s.fields["dns_hosts"]:depends({ _xray_node = "1" })
 
 s:tab("log", translate("Log"))
@@ -403,7 +398,7 @@ o.rmempty = false
 o = s2:option(ListValue, "node", translate("Socks Node"))
 
 local n = 1
-uci:foreach(appname, "socks", function(s)
+m.uci:foreach(appname, "socks", function(s)
 	if s[".name"] == section then
 		return false
 	end

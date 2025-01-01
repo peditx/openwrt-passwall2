@@ -8,7 +8,6 @@ end
 
 local appname = api.appname
 local jsonc = api.jsonc
-local uci = api.uci
 
 local type_name = "Xray"
 
@@ -19,7 +18,7 @@ local function _n(name)
 end
 
 local ss_method_list = {
-	"aes-128-gcm", "aes-256-gcm", "chacha20-poly1305", "xchacha20-poly1305", "2022-blake3-aes-128-gcm", "2022-blake3-aes-256-gcm", "2022-blake3-chacha20-poly1305"
+	"aes-128-gcm", "aes-256-gcm", "chacha20-poly1305", "chacha20-ietf-poly1305", "xchacha20-poly1305", "xchacha20-ietf-poly1305", "2022-blake3-aes-128-gcm", "2022-blake3-aes-256-gcm", "2022-blake3-chacha20-poly1305"
 }
 
 local security_list = { "none", "auto", "aes-128-gcm", "chacha20-poly1305", "zero" }
@@ -86,7 +85,7 @@ for k, e in ipairs(api.get_valid_nodes()) do
 end
 
 local socks_list = {}
-uci:foreach(appname, "socks", function(s)
+m.uci:foreach(appname, "socks", function(s)
 	if s.enabled == "1" and s.node then
 		socks_list[#socks_list + 1] = {
 			id = "Socks_" .. s[".name"],
@@ -184,7 +183,7 @@ if #nodes_table > 0 then
 		o.default = o.keylist[1]
 	end
 end
-uci:foreach(appname, "shunt_rules", function(e)
+m.uci:foreach(appname, "shunt_rules", function(e)
 	if e[".name"] and e.remarks then
 		o = s:option(ListValue, _n(e[".name"]), string.format('* <a href="%s" target="_blank">%s</a>', api.url("shunt_rules", e[".name"]), e.remarks))
 		o:value("", translate("Close"))
@@ -336,8 +335,10 @@ o:depends({ [_n("protocol")] = "shadowsocks" })
 o = s:option(Flag, _n("reality"), translate("REALITY"))
 o.default = 0
 o:depends({ [_n("tls")] = true, [_n("transport")] = "raw" })
-o:depends({ [_n("tls")] = true, [_n("transport")] = "h2" })
+o:depends({ [_n("tls")] = true, [_n("transport")] = "ws" })
+o:depends({ [_n("tls")] = true, [_n("transport")] = "quic" })
 o:depends({ [_n("tls")] = true, [_n("transport")] = "grpc" })
+o:depends({ [_n("tls")] = true, [_n("transport")] = "httpupgrade" })
 o:depends({ [_n("tls")] = true, [_n("transport")] = "xhttp" })
 
 o = s:option(ListValue, _n("alpn"), translate("alpn"))
@@ -349,7 +350,7 @@ o:value("h3,h2")
 o:value("http/1.1")
 o:value("h2,http/1.1")
 o:value("h3,h2,http/1.1")
-o:depends({ [_n("tls")] = true, [_n("reality")] = false })
+o:depends({ [_n("tls")] = true })
 
 -- o = s:option(Value, _n("minversion"), translate("minversion"))
 -- o.default = "1.3"
@@ -397,7 +398,6 @@ o = s:option(ListValue, _n("transport"), translate("Transport"))
 o:value("raw", "RAW (TCP)")
 o:value("mkcp", "mKCP")
 o:value("ws", "WebSocket")
-o:value("h2", "HTTP/2")
 o:value("ds", "DomainSocket")
 o:value("quic", "QUIC")
 o:value("grpc", "gRPC")
@@ -498,25 +498,6 @@ o:depends({ [_n("transport")] = "ws" })
 o = s:option(Value, _n("ws_heartbeatPeriod"), translate("HeartbeatPeriod(second)"))
 o.datatype = "integer"
 o:depends({ [_n("transport")] = "ws" })
-
--- [[ HTTP/2部分 ]]--
-o = s:option(Value, _n("h2_host"), translate("HTTP/2 Host"))
-o:depends({ [_n("transport")] = "h2" })
-
-o = s:option(Value, _n("h2_path"), translate("HTTP/2 Path"))
-o.placeholder = "/"
-o:depends({ [_n("transport")] = "h2" })
-
-o = s:option(Flag, _n("h2_health_check"), translate("Health check"))
-o:depends({ [_n("transport")] = "h2" })
-
-o = s:option(Value, _n("h2_read_idle_timeout"), translate("Idle timeout"))
-o.default = "10"
-o:depends({ [_n("h2_health_check")] = true })
-
-o = s:option(Value, _n("h2_health_check_timeout"), translate("Health check timeout"))
-o.default = "15"
-o:depends({ [_n("h2_health_check")] = true })
 
 -- [[ DomainSocket部分 ]]--
 o = s:option(Value, _n("ds_path"), "Path", translate("A legal file path. This file must not exist before running."))
