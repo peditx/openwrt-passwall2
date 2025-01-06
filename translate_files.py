@@ -11,7 +11,7 @@ chinese_pattern = re.compile(r'[\u4e00-\u9fff]+')
 for root, _, files in os.walk(target_folder):
     for file_name in files:
         file_path = os.path.join(root, file_name)
-        if file_path.endswith((".txt", ".log", ".json", ".lua", ".sh")):  # بررسی پسوند فایل
+        if file_path.endswith((".txt", ".log", ".json", ".lua", ".sh")):
             with open(file_path, "r", encoding="utf-8") as f:
                 content = f.read()
             
