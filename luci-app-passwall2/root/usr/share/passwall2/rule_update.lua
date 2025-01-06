@@ -49,9 +49,9 @@ local function curl(url, file)
 	return tonumber(result)
 end
 
---获取geoip
+--Obtaingeoip
 local function fetch_geoip()
-	--请求geoip
+	--askgeoip
 	xpcall(function()
 		local return_code, content = api.curl_logic(geoip_api)
 		local json = jsonc.parse(content)
@@ -70,7 +70,7 @@ local function fetch_geoip()
 						if fs.access(asset_location .. "geoip.dat") then
 							sys.call(string.format("cp -f %s %s", asset_location .. "geoip.dat", "/tmp/geoip.dat"))
 							if sys.call('sha256sum -c /tmp/geoip.dat.sha256sum > /dev/null 2>&1') == 0 then
-								log("geoip 版本一致，无需更新。")
+								log("geoip Consistent version，No need to update。")
 								return 1
 							end
 						end
@@ -80,10 +80,10 @@ local function fetch_geoip()
 								if sys.call('sha256sum -c /tmp/geoip.dat.sha256sum > /dev/null 2>&1') == 0 then
 									sys.call(string.format("mkdir -p %s && cp -f %s %s", asset_location, "/tmp/geoip.dat", asset_location .. "geoip.dat"))
 									reboot = 1
-									log("geoip 更新成功。")
+									log("geoip Successful update。")
 									return 1
 								else
-									log("geoip 更新失败，请稍后再试。")
+									log("geoip Update failure，Please try again later。")
 								end
 								break
 							end
@@ -100,9 +100,9 @@ local function fetch_geoip()
 	return 0
 end
 
---获取geosite
+--Obtaingeosite
 local function fetch_geosite()
-	--请求geosite
+	--askgeosite
 	xpcall(function()
 		local return_code, content = api.curl_logic(geosite_api)
 		local json = jsonc.parse(content)
@@ -121,7 +121,7 @@ local function fetch_geosite()
 						if fs.access(asset_location .. "geosite.dat") then
 							sys.call(string.format("cp -f %s %s", asset_location .. "geosite.dat", "/tmp/geosite.dat"))
 							if sys.call('sha256sum -c /tmp/geosite.dat.sha256sum > /dev/null 2>&1') == 0 then
-								log("geosite 版本一致，无需更新。")
+								log("geosite Consistent version，No need to update。")
 								return 1
 							end
 						end
@@ -131,10 +131,10 @@ local function fetch_geosite()
 								if sys.call('sha256sum -c /tmp/geosite.dat.sha256sum > /dev/null 2>&1') == 0 then
 									sys.call(string.format("mkdir -p %s && cp -f %s %s", asset_location, "/tmp/geosite.dat", asset_location .. "geosite.dat"))
 									reboot = 1
-									log("geosite 更新成功。")
+									log("geosite Successful update。")
 									return 1
 								else
-									log("geosite 更新失败，请稍后再试。")
+									log("geosite Update failure，Please try again later。")
 								end
 								break
 							end
@@ -168,17 +168,17 @@ if geoip_update == 0 and geosite_update == 0 then
 	os.exit(0)
 end
 
-log("开始更新规则...")
+log("Start update rules...")
 
 if tonumber(geoip_update) == 1 then
-	log("geoip 开始更新...")
+	log("geoip Start update...")
 	local status = fetch_geoip()
 	os.remove("/tmp/geoip.dat")
 	os.remove("/tmp/geoip.dat.sha256sum")
 end
 
 if tonumber(geosite_update) == 1 then
-	log("geosite 开始更新...")
+	log("geosite Start update...")
 	local status = fetch_geosite()
 	os.remove("/tmp/geosite.dat")
 	os.remove("/tmp/geosite.dat.sha256sum")
@@ -195,11 +195,11 @@ if reboot == 1 then
 		end
 	end
 
-	log("重启服务，应用新的规则。")
+	log("Restart service，Application new rules。")
 	if use_nft == "1" then
 		sys.call("sh /usr/share/" .. name .. "/nftables.sh flush_nftset_reload > /dev/null 2>&1 &")
 	else
 		sys.call("sh /usr/share/" .. name .. "/iptables.sh flush_ipset_reload > /dev/null 2>&1 &")
 	end
 end
-log("规则更新完毕...")
+log("The rules are updated...")
