@@ -1262,7 +1262,7 @@ start() {
 			USE_TABLES="nftables"
 			nftflag=1
 		else
-			echolog "Dnsmasq软件包不满足nftablesTransparent proxy requirements，If you need to use it, make surednsmasqVersion2.87Above and opennftsetsupport。"
+			echolog "DnsmasqSoftware package is not satisfiednftablesTransparent proxy requirements，If you need to use it, make surednsmasqVersion2.87Above and opennftsetsupport。"
 		fi
 	fi
 
