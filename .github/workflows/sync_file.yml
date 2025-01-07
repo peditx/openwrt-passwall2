@@ -20,12 +20,18 @@ jobs:
         git merge upstream/main --allow-unrelated-histories || true
         git push origin main
 
-    - name: Replace File
+    - name: Force Replace File
       run: |
+        rm -f luci-app-passwall2/luasrc/view/passwall2/global/status.htm
+        
         curl -o luci-app-passwall2/luasrc/view/passwall2/global/status.htm \
           https://raw.githubusercontent.com/peditx/iranIPS/refs/heads/main/.files/lowspc/main/new/backup/status.htm
+        
         git config user.name "GitHub Action"
         git config user.email "action@github.com"
+        
         git add luci-app-passwall2/luasrc/view/passwall2/global/status.htm
-        git commit -m "Updated status.htm from source"
-        git push origin main
+        
+        git commit -m "Forced update of status.htm"
+        
+        git push origin main || echo "Push failed, but file replacement succeeded."
