@@ -15,23 +15,36 @@ jobs:
 
     - name: Sync with Upstream
       run: |
-        git remote add upstream https://github.com/xiaorouji/openwrt-passwall2.git
+        echo "Adding upstream remote repository..."
+        git remote add upstream https://github.com/xiaorouji/openwrt-passwall2.git || echo "Upstream already added."
+        
+        echo "Fetching upstream changes..."
         git fetch upstream
-        git merge upstream/main --allow-unrelated-histories || true
-        git push origin main
+        
+        echo "Checking for changes..."
+        git merge upstream/main --allow-unrelated-histories || echo "Merge conflicts or no changes."
+
+        echo "Pushing changes to origin..."
+        git push origin main || echo "Push failed."
 
     - name: Force Replace File
       run: |
-        rm -f luci-app-passwall2/luasrc/view/passwall2/global/status.htm
-        
-        curl -o luci-app-passwall2/luasrc/view/passwall2/global/status.htm \
+        echo "Removing old status.htm file..."
+        rm -f luci-app-passwall2/luasrc/view/passwall2/global/status.htm || echo "File does not exist."
+
+        echo "Downloading new status.htm file..."
+        curl -fSL -o luci-app-passwall2/luasrc/view/passwall2/global/status.htm \
           https://raw.githubusercontent.com/peditx/iranIPS/refs/heads/main/.files/lowspc/main/new/backup/status.htm
-        
+
+        echo "Downloaded file content:"
+        cat luci-app-passwall2/luasrc/view/passwall2/global/status.htm
+
         git config user.name "GitHub Action"
         git config user.email "action@github.com"
-        
+
+        echo "Adding changes to git..."
         git add luci-app-passwall2/luasrc/view/passwall2/global/status.htm
-        
-        git commit -m "Forced update of status.htm"
-        
-        git push origin main || echo "Push failed, but file replacement succeeded."
+        git commit -m "Forced update of status.htm" || echo "No changes to commit."
+
+        echo "Pushing changes to remote repository..."
+        git push origin main || echo "Push failed."
