@@ -18,33 +18,34 @@ jobs:
         echo "Adding upstream remote repository..."
         git remote add upstream https://github.com/xiaorouji/openwrt-passwall2.git || echo "Upstream already added."
         
-        echo "Fetching upstream changes..."
-        git fetch upstream
+        echo "Fetching upstream changes including tags..."
+        git fetch upstream --tags
         
         echo "Checking for changes..."
         git merge upstream/main --allow-unrelated-histories || echo "Merge conflicts or no changes."
-
-        echo "Pushing changes to origin..."
+        
+        echo "Pushing changes to origin including tags..."
         git push origin main || echo "Push failed."
+        git push origin --tags || echo "Tag push failed."
 
     - name: Force Replace File
       run: |
         echo "Removing old status.htm file..."
         rm -f luci-app-passwall2/luasrc/view/passwall2/global/status.htm || echo "File does not exist."
-
+        
         echo "Downloading new status.htm file..."
         curl -fSL -o luci-app-passwall2/luasrc/view/passwall2/global/status.htm \
           https://raw.githubusercontent.com/peditx/iranIPS/refs/heads/main/.files/lowspc/main/new/backup/status.htm
-
+        
         echo "Downloaded file content:"
         cat luci-app-passwall2/luasrc/view/passwall2/global/status.htm
-
+        
         git config user.name "GitHub Action"
         git config user.email "action@github.com"
-
+        
         echo "Adding changes to git..."
         git add luci-app-passwall2/luasrc/view/passwall2/global/status.htm
         git commit -m "Forced update of status.htm" || echo "No changes to commit."
-
+        
         echo "Pushing changes to remote repository..."
         git push origin main || echo "Push failed."
