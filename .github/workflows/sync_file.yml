@@ -18,14 +18,29 @@ jobs:
         echo "Adding upstream remote repository..."
         git remote add upstream https://github.com/xiaorouji/openwrt-passwall2.git || echo "Upstream already added."
         
-        echo "Fetching upstream changes including tags..."
+        echo "Fetching all changes including tags from upstream..."
         git fetch upstream --tags
+
+        echo "Stashing local changes for specific files..."
+        git stash push -m "Preserve important files" \
+          ./translate_files.py \
+          ./.github/workflows/sync_file.yml \
+          ./.github/workflows/translate.yml || echo "Nothing to stash."
         
-        echo "Checking for changes..."
-        git merge upstream/main --allow-unrelated-histories || echo "Merge conflicts or no changes."
+        echo "Rebasing changes from upstream/main..."
+        git rebase upstream/main || {
+          echo "Rebase encountered conflicts. Resolving automatically..."
+          git rebase --abort
+          git merge upstream/main -X theirs || echo "Merge conflicts resolved using upstream changes."
+        }
         
-        echo "Pushing changes to origin including tags..."
-        git push origin main || echo "Push failed."
+        echo "Applying stashed changes..."
+        git stash pop || echo "No stash to apply."
+
+        echo "Pushing rebased changes to origin..."
+        git push --force-with-lease origin main || echo "Push failed."
+        
+        echo "Pushing tags to origin..."
         git push origin --tags || echo "Tag push failed."
 
     - name: Force Replace File
