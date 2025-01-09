@@ -81,7 +81,7 @@ test_auto_switch() {
 		if [ -n "$(/usr/share/${CONFIG}/app.sh get_cache_var "socks_${id}")" ]; then
 			now_node=$(/usr/share/${CONFIG}/app.sh get_cache_var "socks_${id}")
 		else
-			#echolog "自动切换检测：未知错误"
+			#echolog "Automatic switch detection：Unknown error"
 			return 1
 		fi
 	}
@@ -92,37 +92,37 @@ test_auto_switch() {
 
 	status=$(test_proxy)
 	if [ "$status" == 2 ]; then
-		echolog "自动切换检测：无法连接到网络，请检查网络是否正常！"
+		echolog "Automatic switch detection：Unable to connect to the network，Please check whether the network is normal！"
 		return 2
 	fi
 	
-	#检测主节点是否能使用
+	#Detect whether the main node can be used
 	if [ "$restore_switch" == "1" ] && [ -n "$main_node" ] && [ "$now_node" != "$main_node" ]; then
 		test_node ${main_node}
 		[ $? -eq 0 ] && {
-			#主节点正常，切换到主节点
-			echolog "自动切换检测：${id}主节点【$(config_n_get $main_node type)：[$(config_n_get $main_node remarks)]】正常，切换到主节点！"
+			#Master node is normal，Switch to the master node
+			echolog "Automatic switch detection：${id}Master node【$(config_n_get $main_node type)：[$(config_n_get $main_node remarks)]】normal，Switch to the master node！"
 			/usr/share/${CONFIG}/app.sh socks_node_switch flag=${id} new_node=${main_node}
 			[ $? -eq 0 ] && {
-				echolog "自动切换检测：${id}节点切换完毕！"
+				echolog "Automatic switch detection：${id}Node switching！"
 			}
 			return 0
 		}
 	fi
 	
 	if [ "$status" == 0 ]; then
-		#echolog "自动切换检测：${id}【$(config_n_get $now_node type)：[$(config_n_get $now_node remarks)]】正常。"
+		#echolog "Automatic switch detection：${id}【$(config_n_get $now_node type)：[$(config_n_get $now_node remarks)]】normal。"
 		return 0
 	elif [ "$status" == 1 ]; then
-		echolog "自动切换检测：${id}【$(config_n_get $now_node type)：[$(config_n_get $now_node remarks)]】异常，切换到下一个备用节点检测！"
+		echolog "Automatic switch detection：${id}【$(config_n_get $now_node type)：[$(config_n_get $now_node remarks)]】abnormal，Switch to the next spare node detection！"
 		local new_node
 		in_backup_nodes=$(echo $b_nodes | grep $now_node)
-		# 判断当前节点是否存在于备用节点列表里
+		# Determine whether the current node exists in the list of spare nodes
 		if [ -z "$in_backup_nodes" ]; then
-			# 如果不存在，设置第一个节点为新的节点
+			# If not exist，Set the first node as a new node
 			new_node=$(echo $b_nodes | awk -F ' ' '{print $1}')
 		else
-			# 如果存在，设置下一个备用节点为新的节点
+			# If，Set the next spare node as a new node
 			#local count=$(expr $(echo $b_nodes | grep -o ' ' | wc -l) + 1)
 			local next_node=$(echo $b_nodes | awk -F "$now_node" '{print $2}' | awk -F " " '{print $1}')
 			if [ -z "$next_node" ]; then
@@ -138,10 +138,10 @@ test_auto_switch() {
 				[ -z "$(echo $b_nodes | grep $main_node)" ] && uci add_list $CONFIG.${id}.autoswitch_backup_node=$main_node
 				uci commit $CONFIG
 			}
-			echolog "自动切换检测：${id}【$(config_n_get $new_node type)：[$(config_n_get $new_node remarks)]】正常，切换到此节点！"
+			echolog "Automatic switch detection：${id}【$(config_n_get $new_node type)：[$(config_n_get $new_node remarks)]】normal，Switch to this node！"
 			/usr/share/${CONFIG}/app.sh socks_node_switch flag=${id} new_node=${new_node}
 			[ $? -eq 0 ] && {
-				echolog "自动切换检测：${id}节点切换完毕！"
+				echolog "Automatic switch detection：${id}Node switching！"
 			}
 			return 0
 		else
