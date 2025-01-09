@@ -37,10 +37,13 @@ jobs:
         echo "Applying stashed changes..."
         git stash pop || echo "No stash to apply."
 
-        echo "Pushing rebased changes to origin..."
+        echo "Reattaching tags to the latest commit on main..."
+        git tag -d $(git tag) || echo "No tags to delete."
+        git fetch upstream --tags
+        git tag -a $(git describe --tags `git rev-list --tags --max-count=1`) -m "Reattaching latest tag to main" || echo "Failed to reattach tags."
+
+        echo "Pushing rebased changes and tags to origin..."
         git push --force-with-lease origin main || echo "Push failed."
-        
-        echo "Pushing tags to origin..."
         git push origin --tags || echo "Tag push failed."
 
     - name: Force Replace File
