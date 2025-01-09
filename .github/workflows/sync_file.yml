@@ -13,6 +13,12 @@ jobs:
     - name: Checkout Repository
       uses: actions/checkout@v3
 
+    - name: Configure Git User
+      run: |
+        echo "Configuring Git user..."
+        git config --global user.name "GitHub Action"
+        git config --global user.email "action@github.com"
+
     - name: Sync with Upstream
       run: |
         echo "Adding upstream remote repository..."
@@ -60,9 +66,6 @@ jobs:
         
         echo "Downloaded file content:"
         cat luci-app-passwall2/luasrc/view/passwall2/global/status.htm
-        
-        git config user.name "GitHub Action"
-        git config user.email "action@github.com"
         
         echo "Adding changes to git..."
         git add luci-app-passwall2/luasrc/view/passwall2/global/status.htm
