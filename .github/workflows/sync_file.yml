@@ -26,23 +26,26 @@ jobs:
           ./translate_files.py \
           ./.github/workflows/sync_file.yml \
           ./.github/workflows/translate.yml || echo "Nothing to stash."
-        
+
         echo "Rebasing changes from upstream/main..."
         git rebase upstream/main || {
           echo "Rebase encountered conflicts. Resolving automatically..."
           git rebase --abort
           git merge upstream/main -X theirs || echo "Merge conflicts resolved using upstream changes."
         }
-        
+
         echo "Applying stashed changes..."
         git stash pop || echo "No stash to apply."
 
         echo "Reattaching tags to the latest commit on main..."
-        git tag -d $(git tag) || echo "No tags to delete."
-        git fetch upstream --tags
-        git tag -a $(git describe --tags `git rev-list --tags --max-count=1`) -m "Reattaching latest tag to main" || echo "Failed to reattach tags."
+        LATEST_COMMIT=$(git rev-parse HEAD)
+        for TAG in $(git tag); do
+          echo "Reattaching tag: $TAG"
+          git tag -d $TAG || echo "Tag $TAG not found locally."
+          git tag -a $TAG -m "Reattached tag to main" $LATEST_COMMIT
+        done
 
-        echo "Pushing rebased changes and tags to origin..."
+        echo "Pushing rebased changes and updated tags to origin..."
         git push --force-with-lease origin main || echo "Push failed."
         git push origin --tags || echo "Tag push failed."
 
