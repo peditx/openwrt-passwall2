@@ -895,7 +895,7 @@ local function processData(szType, content, add_mode, add_from)
 			result.flow = params.flow or nil
 
 			if result.type == "sing-box" and (result.transport == "mkcp" or result.transport == "xhttp" or result.transport == "splithttp") then
-				log("Skip node:" .. result.remarks .."，因Sing-BoxNot support" .. szType .. "Protocol" .. result.transport .. "Transmission method，需更换Xray。")
+				log("Skip node:" .. result.remarks .."，becauseSing-BoxNot support" .. szType .. "Protocol" .. result.transport .. "Transmission method，Need to be replacedXray。")
 				return nil
 			end
 		end
@@ -1052,7 +1052,7 @@ local function processData(szType, content, add_mode, add_from)
 			result.tls_allowInsecure = allowInsecure_default and "1" or "0"
 
 			if result.type == "sing-box" and (result.transport == "mkcp" or result.transport == "xhttp" or result.transport == "splithttp") then
-				log("Skip node:" .. result.remarks .."，becauseSing-BoxNot support" .. szType .. "Protocol" .. result.transport .. "传输方式，Need to be replacedXray。")
+				log("Skip node:" .. result.remarks .."，becauseSing-BoxNot support" .. szType .. "Protocol" .. result.transport .. "Transmission method，Need to be replacedXray。")
 				return nil
 			end
 		end
@@ -1142,7 +1142,7 @@ local function processData(szType, content, add_mode, add_from)
 		result.tls_serverName = params.sni
 		if params.insecure and (params.insecure == "1" or params.insecure == "0") then
 			result.tls_allowInsecure = params.insecure
-			--log(result.remarks ..' 使用节点AllowInsecureset up: '.. result.tls_allowInsecure)
+			--log(result.remarks ..' Use nodeAllowInsecureset up: '.. result.tls_allowInsecure)
 		else
 			result.tls_allowInsecure = allowInsecure_default and "1" or "0"
 		end
@@ -1216,7 +1216,7 @@ local function processData(szType, content, add_mode, add_from)
 		result.type = 'sing-box'
 		result.protocol = "tuic"
 	else
-		log('暂时不支持' .. szType .. "类型的节点订阅，跳过此节点。")
+		log('Temporary not support' .. szType .. "Type node subscription，Skip this node。")
 		return nil
 	end
 	if not result.remarks or result.remarks == "" then
@@ -1297,7 +1297,7 @@ local function select_node(nodes, config)
 				end
 			end
 		end
-		-- Priority type + 备注 + IP + 端口
+		-- Priority type + Remark + IP + port
 		if not server then
 			for index, node in pairs(nodes) do
 				if config.currentNode.type and config.currentNode.remarks and config.currentNode.address and config.currentNode.port then
@@ -1313,14 +1313,14 @@ local function select_node(nodes, config)
 				end
 			end
 		end
-		-- 第二优先级 type + IP + port
+		-- Second priority type + IP + port
 		if not server then
 			for index, node in pairs(nodes) do
 				if config.currentNode.type and config.currentNode.address and config.currentNode.port then
 					if node.type and node.address and node.port then
 						if node.type == config.currentNode.type and (node.address .. ':' .. node.port == config.currentNode.address .. ':' .. config.currentNode.port) then
 							if config.log == nil or config.log == true then
-								log('renew【' .. config.remarks .. '】第二匹配节点：' .. node.remarks)
+								log('renew【' .. config.remarks .. '】Second matching node：' .. node.remarks)
 							end
 							server = node[".name"]
 							break
@@ -1329,14 +1329,14 @@ local function select_node(nodes, config)
 				end
 			end
 		end
-		-- 第三优先级 IP + 端口
+		-- Third priority IP + port
 		if not server then
 			for index, node in pairs(nodes) do
 				if config.currentNode.address and config.currentNode.port then
 					if node.address and node.port then
 						if node.address .. ':' .. node.port == config.currentNode.address .. ':' .. config.currentNode.port then
 							if config.log == nil or config.log == true then
-								log('更新【' .. config.remarks .. '】Third matching node：' .. node.remarks)
+								log('renew【' .. config.remarks .. '】Third matching node：' .. node.remarks)
 							end
 							server = node[".name"]
 							break
@@ -1345,14 +1345,14 @@ local function select_node(nodes, config)
 				end
 			end
 		end
-		-- 第四优先级 IP
+		-- Fourth priority IP
 		if not server then
 			for index, node in pairs(nodes) do
 				if config.currentNode.address then
 					if node.address then
 						if node.address == config.currentNode.address then
 							if config.log == nil or config.log == true then
-								log('更新【' .. config.remarks .. '】Fourth matching node：' .. node.remarks)
+								log('renew【' .. config.remarks .. '】Fourth matching node：' .. node.remarks)
 							end
 							server = node[".name"]
 							break
@@ -1361,14 +1361,14 @@ local function select_node(nodes, config)
 				end
 			end
 		end
-		-- 第五优先级备注
+		-- Fifth priority remarks
 		if not server then
 			for index, node in pairs(nodes) do
 				if config.currentNode.remarks then
 					if node.remarks then
 						if node.remarks == config.currentNode.remarks then
 							if config.log == nil or config.log == true then
-								log('更新【' .. config.remarks .. '】Fifth matching node：' .. node.remarks)
+								log('renew【' .. config.remarks .. '】Fifth matching node：' .. node.remarks)
 							end
 							server = node[".name"]
 							break
@@ -1387,7 +1387,7 @@ local function select_node(nodes, config)
 			end
 			if #nodes_table > 0 then
 				if config.log == nil or config.log == true then
-					log('【' .. config.remarks .. '】' .. 'Can't find the most matched node，当前已更换为：' .. nodes_table[1].remarks)
+					log('【' .. config.remarks .. '】' .. 'Can't find the most matched node，Currently replaced：' .. nodes_table[1].remarks)
 				end
 				server = nodes_table[1][".name"]
 			end
@@ -1484,7 +1484,7 @@ local function parse_link(raw, add_mode, add_from)
 	if raw and #raw > 0 then
 		local nodes, szType
 		local node_list = {}
-		-- SSD 似乎是这种格式 ssd:// 开头的
+		-- SSD It seems to be this format ssd:// Starting
 		if raw:find('ssd://') then
 			szType = 'ssd'
 			local nEnd = select(2, raw:find('ssd://'))
@@ -1497,13 +1497,13 @@ local function parse_link(raw, add_mode, add_from)
 				password = nodes.password
 			}
 			local servers = {}
-			-- SS里面包着 干脆直接这样
+			-- SSBread inside Simply like this
 			for _, server in ipairs(nodes.servers) do
 				tinsert(servers, setmetatable(server, { __index = extra }))
 			end
 			nodes = servers
 		else
-			-- ssd 外的格式
+			-- ssd Outer format
 			if add_mode == "1" then
 				nodes = split(raw:gsub(" ", "\n"), "\n")
 			else
@@ -1533,19 +1533,19 @@ local function parse_link(raw, add_mode, add_from)
 					-- log(result)
 					if result then
 						if result.error_msg then
-							log('丢弃节点: ' .. result.remarks .. ", reason:" .. result.error_msg)
+							log('Abandon node: ' .. result.remarks .. ", reason:" .. result.error_msg)
 						elseif not result.type then
-							log('Abandon node: ' .. result.remarks .. ", 找不到可使用二进制.")
+							log('Abandon node: ' .. result.remarks .. ", Can't find binary.")
 						elseif (add_mode == "2" and is_filter_keyword(result.remarks)) or not result.address or result.remarks == "NULL" or result.address == "127.0.0.1" or
 								(not datatypes.hostname(result.address) and not (api.is_ip(result.address))) then
-							log('Discard the filter node: ' .. result.type .. ' 节点, ' .. result.remarks)
+							log('Discard the filter node: ' .. result.type .. ' node, ' .. result.remarks)
 						else
 							tinsert(node_list, result)
 						end
 					end
 				end, function (err)
 					--log(err)
-					log(v, "解析错误，跳过此节点。")
+					log(v, "Analysis error，Skip this node。")
 				end
 			)
 			end
@@ -1556,10 +1556,10 @@ local function parse_link(raw, add_mode, add_from)
 				list = node_list
 			}
 		end
-		log('成功解析【' .. add_from .. '】节点数量: ' .. #node_list)
+		log('Successful analysis【' .. add_from .. '】Number of nodes: ' .. #node_list)
 	else
 		if add_mode == "2" then
-			log('获取到的【' .. add_from .. '】订阅内容为空，可能是订阅地址失效，或是网络问题，请请检测。')
+			log('Obtained【' .. add_from .. '】Subscribe to empty，Maybe the subscription address is invalid，Or network problem，Please test。')
 		end
 	end
 end
@@ -1631,8 +1631,8 @@ local execute = function()
 			end
 			local ua = value.user_agent
 			local access_mode = value.access_mode
-			local result = (not access_mode) and "自动" or (access_mode == "direct" and "直连访问" or (access_mode == "proxy" and "通过代理" or "automatic"))
-			log('正在订阅:【' .. remark .. '】' .. url .. ' [' .. result .. ']')
+			local result = (not access_mode) and "automatic" or (access_mode == "direct" and "Direct access" or (access_mode == "proxy" and "Pass an agent" or "automatic"))
+			log('Are subscribing to:【' .. remark .. '】' .. url .. ' [' .. result .. ']')
 			local raw = curl(url, "/tmp/" .. cfgid, ua, access_mode)
 			if raw == 0 then
 				local f = io.open("/tmp/" .. cfgid, "r")
@@ -1657,7 +1657,7 @@ local execute = function()
 
 		if #fail_list > 0 then
 			for index, value in ipairs(fail_list) do
-				log(string.format('【%s】订阅失败，可能是订阅地址失效，或是网络问题，请诊断！', value.remark))
+				log(string.format('【%s】Subscribe to fail，Maybe the subscription address is invalid，Or network problem，Please diagnose！', value.remark))
 			end
 		end
 		update_node(0)
@@ -1666,20 +1666,20 @@ end
 
 if arg[1] then
 	if arg[1] == "start" then
-		log('开始订阅...')
+		log('Start subscription...')
 		xpcall(execute, function(e)
 			log(e)
 			log(debug.traceback())
-			log('发生错误, 正在恢复服务')
+			log('Error, Restore service')
 		end)
-		log('订阅完毕...')
+		log('Complete subscription...')
 	elseif arg[1] == "add" then
 		local f = assert(io.open("/tmp/links.conf", 'r'))
 		local content = f:read('*all')
 		f:close()
 		local nodes = split(content:gsub(" ", "\n"), "\n")
 		for _, raw in ipairs(nodes) do
-			parse_link(raw, "1", "导入")
+			parse_link(raw, "1", "Import")
 		end
 		update_node(1)
 		luci.sys.call("rm -f /tmp/links.conf")
