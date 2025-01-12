@@ -102,7 +102,7 @@ for k, e in ipairs(api.get_valid_nodes()) do
 	end
 end
 
--- Get the current server of various dynamic configuration，Can use get 和 set， getMust get a node table
+-- Get the current server of various dynamic configuration，Can use get and set， getMust get a node table
 local CONFIG = {}
 do
 	if true then
@@ -112,7 +112,7 @@ do
 		local node_id = uci:get(appname, szType, option)
 		CONFIG[#CONFIG + 1] = {
 			log = true,
-			remarks = "节点",
+			remarks = "node",
 			currentNode = node_id and uci:get_all(appname, node_id) or nil,
 			set = function(o, server)
 				uci:set(appname, szType, option, server)
@@ -144,7 +144,7 @@ do
 				end
 			}
 			if t.autoswitch_backup_node and #t.autoswitch_backup_node > 0 then
-				local flag = "Socks节点列表[" .. i .. "]备用节点的列表"
+				local flag = "SocksNode list[" .. i .. "]List of spare nodes"
 				local currentNodes = {}
 				local newNodes = {}
 				for k, node_id in ipairs(t.autoswitch_backup_node) do

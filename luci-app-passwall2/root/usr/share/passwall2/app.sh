@@ -976,10 +976,10 @@ start_crontab() {
 	if [ "$ENABLED_DEFAULT_ACL" == 1 ] || [ "$ENABLED_ACLS" == 1 ]; then
 		[ "$update_loop" = "1" ] && {
 			$APP_PATH/tasks.sh > /dev/null 2>&1 &
-			echolog "自动更新：Start the cycle update process。"
+			echolog "Automatic update：Start the cycle update process。"
 		}
 	else
-		echolog "运行于非代理模式，Only the timing task allowed to start and stop。"
+		echolog "Run in non -proxy mode，Only the timing task allowed to start and stop。"
 	fi
 
 	/etc/init.d/cron restart
@@ -989,7 +989,7 @@ stop_crontab() {
 	[ -f "/tmp/lock/${CONFIG}_cron.lock" ] && return
 	clean_crontab
 	/etc/init.d/cron restart
-	#echolog "清除定时执行命令。"
+	#echolog "Clear the timing execution command。"
 }
 
 add_ip2route() {
@@ -1186,7 +1186,7 @@ acl_app() {
 						set_cache_var "ACL_${sid}_dns_port" "${GLOBAL_DNSMASQ_PORT}"
 						set_cache_var "ACL_${sid}_default" "1"
 					else
-						echolog "  - 全局节点未启用，jump over【${remarks}】"
+						echolog "  - Global nodes are not enabled，jump over【${remarks}】"
 					fi
 				else
 					[ "$(config_get_type $node)" = "nodes" ] && {
@@ -1248,7 +1248,7 @@ start() {
 		if [ -n "$(command -v iptables-legacy || command -v iptables)" ] && [ -n "$(command -v ipset)" ] && [ -n "$(dnsmasq --version | grep 'Compile time options:.* ipset')" ]; then
 			USE_TABLES="iptables"
 		else
-			echolog "The system is not installediptablesoripset或DnsmasqNot openipsetsupport，无法使用iptables+ipsetTransparent agent！"
+			echolog "The system is not installediptablesoripsetorDnsmasqNot openipsetsupport，not availableiptables+ipsetTransparent agent！"
 			if [ -n "$(command -v fw4)" ] && [ -n "$(command -v nft)" ] && [ -n "$(dnsmasq --version | grep 'Compile time options:.* nftset')" ]; then
 				echolog "Detectfw4，usenftablesTransparent proxy。"
 				USE_TABLES="nftables"
@@ -1262,7 +1262,7 @@ start() {
 			USE_TABLES="nftables"
 			nftflag=1
 		else
-			echolog "DnsmasqSoftware package is not satisfiednftables透明代理要求，If you need to use it, make surednsmasqVersion2.87Above and opennftsetsupport。"
+			echolog "DnsmasqSoftware package is not satisfiednftablesTransparent proxy requirements，If you need to use it, make surednsmasqVersion2.87Above and opennftsetsupport。"
 		fi
 	fi
 
@@ -1270,7 +1270,7 @@ start() {
 	
 	[ "$USE_TABLES" = "nftables" ] && {
 		dnsmasq_version=$(dnsmasq -v | grep -i "Dnsmasq version " | awk '{print $3}')
-		[ "$(expr $dnsmasq_version \>= 2.90)" == 0 ] && echolog "Dnsmasq版本低于2.90，Suggest to upgrade to2.90In the above version to avoid partial circumstancesDnsmasqCollapse！"
+		[ "$(expr $dnsmasq_version \>= 2.90)" == 0 ] && echolog "DnsmasqThe version is lower than2.90，Suggest to upgrade to2.90In the above version to avoid partial circumstancesDnsmasqCollapse！"
 	}
 
 	if [ "$ENABLED_DEFAULT_ACL" == 1 ] || [ "$ENABLED_ACLS" == 1 ]; then
@@ -1331,7 +1331,7 @@ stop() {
 	}
 	rm -rf $TMP_PATH
 	rm -rf /tmp/lock/${CONFIG}_socks_auto_switch*
-	echolog "清空并关闭相关程序和缓存完成。"
+	echolog "Clear and close the relevant program and the cache complete。"
 	exit 0
 }
 
