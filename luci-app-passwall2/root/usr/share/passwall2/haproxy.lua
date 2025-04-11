@@ -39,7 +39,7 @@ local bind_local = uci:get(appname, "@global_haproxy[0]", "bind_local") or "0"
 local bind_address = "0.0.0.0"
 if bind_local == "1" then bind_address = "127.0.0.1" end
 
-log("HAPROXY 负载均衡...")
+log("HAPROXY Load balancing...")
 fs.mkdir(haproxy_path)
 local haproxy_file = haproxy_path .. "/" .. haproxy_conf
 
@@ -148,7 +148,7 @@ uci:foreach(appname, "haproxy_config", function(t)
 			t.server_port = server_port
 			table.insert(listens[listen_port], t)
 		else
-			log("  - 丢弃1个明显无效的节点")
+			log("  - throw away1An obviously invalid node")
 		end
 	end
 end)
@@ -162,7 +162,7 @@ end
 table.sort(sortTable, function(a,b) return (a < b) end)
 
 for i, port in pairs(sortTable) do
-	log("  + 入口 %s:%s" % {bind_address, port})
+	log("  + Entrance %s:%s" % {bind_address, port})
 
 	f_out:write("\n" .. string.format([[
 listen %s
@@ -199,11 +199,11 @@ listen %s
 			sys.call(string.format("/usr/share/passwall2/app.sh add_ip2route %s %s", o.origin_address, o.export))
 		end
 
-		log(string.format("  | - 出口节点：%s:%s，权重：%s", o.origin_address, o.origin_port, o.lbweight))
+		log(string.format("  | - Exit node：%s:%s，Weight：%s", o.origin_address, o.origin_port, o.lbweight))
 	end
 end
 
---控制台配置
+--Console configuration
 local console_port = uci:get(appname, "@global_haproxy[0]", "console_port")
 local console_user = uci:get(appname, "@global_haproxy[0]", "console_user")
 local console_password = uci:get(appname, "@global_haproxy[0]", "console_password")
@@ -217,11 +217,11 @@ listen console
 	%s
 ]]
 f_out:write("\n" .. string.format(str, console_port, (console_user and console_user ~= "" and console_password and console_password ~= "") and "stats auth " .. console_user .. ":" .. console_password or ""))
-log(string.format("  * 控制台端口：%s", console_port))
+log(string.format("  * Console Port：%s", console_port))
 
 f_out:close()
 
---内置健康检查URL
+--Built-in health checkURL
 if health_check_type == "passwall_logic" then
 	local probeUrl = uci:get(appname, "@global_haproxy[0]", "health_probe_url") or "https://www.google.com/generate_204"
 	local f_url = io.open(haproxy_path .. "/Probe_URL", "w")
