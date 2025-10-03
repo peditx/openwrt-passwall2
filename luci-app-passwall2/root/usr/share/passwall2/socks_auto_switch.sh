@@ -65,7 +65,7 @@ test_node() {
 		local curlx="socks5h://127.0.0.1:${_tmp_port}"
 		sleep 1s
 		local _proxy_status=$(test_url "${probe_url}" ${retry_num} ${connect_timeout} "-x $curlx")
-		# 结束 SS 插件进程
+		# Finish SS Plugin Process
 		local pid_file="/tmp/etc/${CONFIG}/test_node_${node_id}_plugin.pid"
 		[ -s "$pid_file" ] && kill -9 "$(head -n 1 "$pid_file")" >/dev/null 2>&1
 		pgrep -af "test_node_${node_id}" | awk '! /socks_auto_switch\.sh/{print $1}' | xargs kill -9 >/dev/null 2>&1
@@ -85,7 +85,7 @@ test_auto_switch() {
 		if [ -n "$(/usr/share/${CONFIG}/app.sh get_cache_var "socks_${id}")" ]; then
 			now_node=$(/usr/share/${CONFIG}/app.sh get_cache_var "socks_${id}")
 		else
-			#echolog "Socks切换检测：未知错误"
+			#echolog "SocksSwitch detection：Unknown error"
 			return 1
 		fi
 	}
@@ -96,46 +96,46 @@ test_auto_switch() {
 
 	local status=$(test_proxy)
 	if [ "$status" = "2" ]; then
-		echolog "Socks切换检测：无法连接到网络，请检查网络是否正常！"
+		echolog "SocksSwitch detection：Unable to connect to the network，Please check if the network is normal！"
 		return 2
 	fi
 	
-	#检测主节点是否能使用
+	#Detect whether the master node can be used
 	if [ "$restore_switch" = "1" ] && [ -n "$main_node" ] && [ "$now_node" != "$main_node" ]; then
 		test_node ${main_node}
 		[ $? -eq 0 ] && {
-			#主节点正常，切换到主节点
-			echolog "Socks切换检测：${id}主节点【$(config_n_get $main_node type)：[$(config_n_get $main_node remarks)]】正常，切换到主节点！"
+			#The master node is normal，Switch to the master node
+			echolog "SocksSwitch detection：${id}Master node【$(config_n_get $main_node type)：[$(config_n_get $main_node remarks)]】normal，Switch to the master node！"
 			/usr/share/${CONFIG}/app.sh socks_node_switch flag=${id} new_node=${main_node}
 			[ $? -eq 0 ] && {
-				echolog "Socks切换检测：${id}节点切换完毕！"
+				echolog "SocksSwitch detection：${id}The node switching has been completed！"
 			}
 			return 0
 		}
 	fi
 
 	if [ "$status" = "0" ]; then
-		#echolog "Socks切换检测：${id}【$(config_n_get $now_node type)：[$(config_n_get $now_node remarks)]】正常。"
+		#echolog "SocksSwitch detection：${id}【$(config_n_get $now_node type)：[$(config_n_get $now_node remarks)]】normal。"
 		return 0
 	elif [ "$status" = "1" ]; then
 		local new_node msg
 		if [ "$backup_node_num" -gt 1 ]; then
-			# 有多个后备节点时
+			# When there are multiple backup nodes
 			local first_node found node
 			for node in $b_nodes; do
-				[ -z "$first_node" ] && first_node="$node"       # 记录第一个节点
-				[ "$found" = "1" ] && { new_node="$node"; break; } # 找到当前节点后取下一个
-				[ "$node" = "$now_node" ] && found=1             # 标记找到当前节点
+				[ -z "$first_node" ] && first_node="$node"       # Record the first node
+				[ "$found" = "1" ] && { new_node="$node"; break; } # Find the current node and take one
+				[ "$node" = "$now_node" ] && found=1             # Tag to find the current node
 			done
-			# 如果没找到当前节点，或者当前节点是最后一个，就取第一个节点
+			# If the current node is not found，Or the current node is the last one，Take the first node
 			[ -z "$new_node" ] && new_node="$first_node"
-			msg="切换到$([ "$now_node" = "$main_node" ] && echo 备用节点 || echo 下一个备用节点)检测！"
+			msg="Switch to$([ "$now_node" = "$main_node" ] && echo Alternate node || echo Next alternate node)Test！"
 		else
-			# 只有一个后备节点时，与主节点轮询
+			# When there is only one backup node，Poll with the master node
 			new_node=$([ "$now_node" = "$main_node" ] && echo "$b_nodes" || echo "$main_node")
-			msg="切换到$([ "$now_node" = "$main_node" ] && echo 备用节点 || echo 主节点)检测！"
+			msg="Switch to$([ "$now_node" = "$main_node" ] && echo Alternate node || echo Master node)Test！"
 		fi
-		echolog "Socks切换检测：${id}【$(config_n_get $now_node type)：[$(config_n_get $now_node remarks)]】异常，$msg"
+		echolog "SocksSwitch detection：${id}【$(config_n_get $now_node type)：[$(config_n_get $now_node remarks)]】abnormal，$msg"
 		test_node ${new_node}
 		if [ $? -eq 0 ]; then
 #			[ "$restore_switch" = "0" ] && {
@@ -143,10 +143,10 @@ test_auto_switch() {
 #				[ -z "$(echo $b_nodes | grep $main_node)" ] && uci add_list $CONFIG.${id}.autoswitch_backup_node=$main_node
 #				uci commit $CONFIG
 #			}
-			echolog "Socks切换检测：${id}【$(config_n_get $new_node type)：[$(config_n_get $new_node remarks)]】正常，切换到此节点！"
+			echolog "SocksSwitch detection：${id}【$(config_n_get $new_node type)：[$(config_n_get $new_node remarks)]】normal，Switch to this node！"
 			/usr/share/${CONFIG}/app.sh socks_node_switch flag=${id} new_node=${new_node}
 			[ $? -eq 0 ] && {
-				echolog "Socks切换检测：${id}节点切换完毕！"
+				echolog "SocksSwitch detection：${id}The node switching has been completed！"
 			}
 			return 0
 		else
@@ -181,7 +181,7 @@ start() {
 			continue
 		}
 		pgrep -af "${CONFIG}/" | awk '/app\.sh.*(start|stop)/ || /nftables\.sh/ || /iptables\.sh/ { found = 1 } END { exit !found }' && {
-			# 特定任务执行中不检测
+			# Not detected during execution of specific tasks
 			sleep 6s
 			continue
 		}
